@@ -25,12 +25,12 @@ FMOBJ = dbopl.o
 SIDOBJ = convolve.o convolve-sse.o envelope.o extfilt.o filter.o pot.o sid.o voice.o wave6581__ST.o wave6581_P_T.o wave6581_PS_.o wave6581_PST.o wave8580__ST.o wave8580_P_T.o wave8580_PS_.o wave8580_PST.o wave.o
 
 
-LIBS = -g -mwindows -lwinmm -lalut -lopenal32 -lddraw -ldinput -ldxguid -ld3d9 -lwpcap -lgcov -lstdc++ -lpthreadGC2
+LIBS = -g -mwindows -lwinmm -lalut -lopenal32 -lddraw -ldinput -ldxguid -ld3d9 -lwpcap -lgcov -lstdc++ -lpthread
 
-PCem_D.exe: $(OBJ) $(FMOBJ) $(SIDOBJ)
-	$(CC) $(OBJ) $(FMOBJ) $(SIDOBJ) -o "PCem_D.exe" $(LIBS)
+PCem_X.exe: $(OBJ) $(FMOBJ) $(SIDOBJ)
+	$(CC) $(OBJ) $(FMOBJ) $(SIDOBJ) -o "PCem_X.exe" $(LIBS)
 
-all : PCem.exe
+all : PCem_X.exe
 
 clean :
 	rm *.o
@@ -44,4 +44,4 @@ clean :
 	$(CPP) $(CFLAGS) -c $<
 
 pc.res: pc.rc
-	$(WINDRES) -i pc.rc --input-format=rc -o pc.res -O coff 
+	$(WINDRES) -i pc.rc --input-format=rc -o pc.res -O coff
