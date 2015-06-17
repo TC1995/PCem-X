@@ -10,12 +10,12 @@
 
 int cdrom_drive;
 
-typedef struct _CDROM_TOC_SESSION_DATA {
+/*typedef struct _CDROM_TOC_SESSION_DATA {
   UCHAR      Length[2];
   UCHAR      FirstCompleteSession;
   UCHAR      LastCompleteSession;
   TRACK_DATA TrackData[1];
-} CDROM_TOC_SESSION_DATA, *PCDROM_TOC_SESSION_DATA;
+} CDROM_TOC_SESSION_DATA, *PCDROM_TOC_SESSION_DATA;*/
 static ATAPI ioctl_atapi;
 
 static uint32_t last_block = 0;
@@ -48,7 +48,7 @@ void ioctl_audio_callback(int16_t *output, int len)
 
 //	return;
 //        pclog("Audio callback %08X %08X %i %i %i %04X %i\n", ioctl_cd_pos, ioctl_cd_end, ioctl_cd_state, cd_buflen, len, cd_buffer[4], GetTickCount());
-        if (ioctl_cd_state != CD_PLAYING) 
+        if (ioctl_cd_state != CD_PLAYING)
         {
                 memset(output, 0, len * 2);
                 return;
@@ -60,7 +60,7 @@ void ioctl_audio_callback(int16_t *output, int len)
 		        in.DiskOffset.LowPart  = ioctl_cd_pos * 2048;
         		in.DiskOffset.HighPart = 0;
         		in.SectorCount	       = 1;
-        		in.TrackMode	       = CDDA;		
+        		in.TrackMode	       = CDDA;
         		ioctl_open(0);
 //        		pclog("Read to %i\n", cd_buflen);
         		if (!DeviceIoControl(hIOCTL, IOCTL_CDROM_RAW_READ, &in, sizeof(in), &cd_buffer[cd_buflen], 2352, &count, NULL))
@@ -82,7 +82,7 @@ void ioctl_audio_callback(int16_t *output, int len)
                 {
                         memset(&cd_buffer[cd_buflen], 0, (BUF_SIZE - cd_buflen) * 2);
                         ioctl_cd_state = CD_STOPPED;
-                        cd_buflen = len;                        
+                        cd_buflen = len;
                 }
         }
         memcpy(output, cd_buffer, len * 2);
@@ -102,7 +102,7 @@ static int get_track_nr(uint32_t pos)
 {
         int c;
         int track = 0;
-        
+
         if (!tocvalid)
                 return 0;
 
@@ -133,7 +133,7 @@ static void ioctl_playaudio(uint32_t pos, uint32_t len, int ismsf)
         ioctl_cd_pos   = pos;// + 150;
         ioctl_cd_end   = len;// + 150;
         ioctl_cd_state = CD_PLAYING;
-        pclog("Audio start %08X %08X %i %i %i\n", ioctl_cd_pos, ioctl_cd_end, ioctl_cd_state, cd_buflen, len);        
+        pclog("Audio start %08X %08X %i %i %i\n", ioctl_cd_pos, ioctl_cd_end, ioctl_cd_state, cd_buflen, len);
 /*        CDROM_PLAY_AUDIO_MSF msf;
         long size;
         BOOL b;
@@ -224,7 +224,7 @@ static int ioctl_ready(void)
             (ltoc.TrackData[ltoc.LastTrack].Address[3] != toc.TrackData[toc.LastTrack].Address[3]) ||
             !tocvalid)
         {
-                ioctl_cd_state = CD_STOPPED;                
+                ioctl_cd_state = CD_STOPPED;
   /*              pclog("Not ready %02X %02X %02X  %02X %02X %02X  %i\n",ltoc.TrackData[ltoc.LastTrack].Address[1],ltoc.TrackData[ltoc.LastTrack].Address[2],ltoc.TrackData[ltoc.LastTrack].Address[3],
                                                                         toc.TrackData[ltoc.LastTrack].Address[1], toc.TrackData[ltoc.LastTrack].Address[2], toc.TrackData[ltoc.LastTrack].Address[3],tocvalid);*/
         //        atapi_discchanged();
@@ -247,7 +247,7 @@ static uint8_t ioctl_getcurrentsubchannel(uint8_t *b, int msf)
 	long size;
 	int pos=0;
         if (!cdrom_drive) return 0;
-        
+
 	insub.Format = IOCTL_CDROM_CURRENT_POSITION;
         ioctl_open(0);
         DeviceIoControl(hIOCTL,IOCTL_CDROM_READ_Q_CHANNEL,&insub,sizeof(insub),&sub,sizeof(sub),&size,NULL);
@@ -300,7 +300,7 @@ static uint8_t ioctl_getcurrentsubchannel(uint8_t *b, int msf)
         b[pos++]=sub.CurrentPosition.Control;
         b[pos++]=sub.CurrentPosition.TrackNumber;
         b[pos++]=sub.CurrentPosition.IndexNumber;
-        
+
         if (msf)
         {
                 int c;
@@ -330,7 +330,7 @@ static void ioctl_eject(void)
 {
         long size;
         if (!cdrom_drive) return;
-        ioctl_cd_state = CD_STOPPED;        
+        ioctl_cd_state = CD_STOPPED;
         ioctl_open(0);
         DeviceIoControl(hIOCTL,IOCTL_STORAGE_EJECT_MEDIA,NULL,0,NULL,0,&size,NULL);
         ioctl_close();
@@ -340,7 +340,7 @@ static void ioctl_load(void)
 {
         long size;
         if (!cdrom_drive) return;
-        ioctl_cd_state = CD_STOPPED;        
+        ioctl_cd_state = CD_STOPPED;
         ioctl_open(0);
         DeviceIoControl(hIOCTL,IOCTL_STORAGE_LOAD_MEDIA,NULL,0,NULL,0,&size,NULL);
         ioctl_close();
@@ -373,7 +373,7 @@ static int ioctl_readtoc(unsigned char *b, unsigned char starttrack, int msf, in
         int c,d;
         uint32_t temp;
         if (!cdrom_drive) return 0;
-        ioctl_cd_state = CD_STOPPED;        
+        ioctl_cd_state = CD_STOPPED;
         ioctl_open(0);
         DeviceIoControl(hIOCTL,IOCTL_CDROM_READ_TOC, NULL,0,&toc,sizeof(toc),&size,NULL);
         ioctl_close();
@@ -442,7 +442,7 @@ static void ioctl_readtoc_session(unsigned char *b, int msf, int maxlen)
         CDROM_READ_TOC_EX toc_ex;
         CDROM_TOC_SESSION_DATA toc;
         if (!cdrom_drive) return;
-        ioctl_cd_state = CD_STOPPED;        
+        ioctl_cd_state = CD_STOPPED;
         memset(&toc_ex,0,sizeof(toc_ex));
         memset(&toc,0,sizeof(toc));
         toc_ex.Format=CDROM_READ_TOC_EX_FORMAT_SESSION;
@@ -480,7 +480,7 @@ static uint32_t ioctl_size()
         unsigned char b[4096];
 
         atapi->readtoc(b, 0, 0, 4096, 0);
-        
+
         return last_block;
 }
 
@@ -495,7 +495,7 @@ void ioctl_reset()
                 tocvalid = 0;
                 return;
         }
-        
+
         ioctl_open(0);
         temp = DeviceIoControl(hIOCTL, IOCTL_CDROM_READ_TOC, NULL, 0, &ltoc, sizeof(ltoc), &size, NULL);
         ioctl_close();
