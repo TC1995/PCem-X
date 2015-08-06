@@ -344,7 +344,13 @@ void freetracksectors(int d, int h, int t)
 
 	for (s=0;s<255;s++)
 	{
-		if (!(fdd[d].scid[h][t][s][4] & 0xC0))  fdd[d].disc[h][t][s] = NULL;
+		// if (!(fdd[d].scid[h][t][s][4] & 0xC0))  fdd[d].disc[h][t][s] = NULL;
+		fdd[d].disc[h][t][s] = NULL;
+		fdd[d].scid[h][t][s][0] = 255;
+		fdd[d].scid[h][t][s][1] = 255;
+		fdd[d].scid[h][t][s][2] = 255;
+		fdd[d].scid[h][t][s][3] = 255;
+		fdd[d].scid[h][t][s][4] = 3;
 	}
 }
 
@@ -398,18 +404,18 @@ void ejectdisc(int d)
         discfns[d][0]=0;
         fdd[d].SECTORS=9; fdd[d].SIDES=1;
         fdd[d].driveempty=1;
+        fdd[d].discchanged=1;
 	fdd[d].CLASS = -1;
 	fdd[d].IMGTYPE = IMGT_NONE;
-	fdc.format_started[0] = 0;
-	fdc.format_started[1] = 0;
-	fdc.track[d] = 0;
-	fdc.head[d] = 0;
-	fdc.sector[d] = 1;
-	fdc.pos[d] = 0;
+	fdc.format_started[vfdd[d]] = 0;
+	fdc.track[vfdd[d]] = 0;
+	fdc.head[vfdd[d]] = 0;
+	fdc.sector[vfdd[d]] = 1;
+	fdc.pos[vfdd[d]] = 0;
 	fdc.deldata = 0;
-	fdc.gotdata[d] = 0;
+	fdc.gotdata[vfdd[d]] = 0;
 	fdd[d].XDF = 0;
-	fdd[d].CLASS = 0;
+	// fdd[d].CLASS = 0;
 	fdd[d].LITE = 0;
 	fdd[d].discmodified=0;
 }
@@ -687,9 +693,8 @@ void read_xdf(FILE *f, int d, int xdft)
 			set_sector_id(d, t, xdf_map[xdft][s2][0], xdf_map[xdft][s2][1], xdf_map[xdft][s2][2] + 128, xdf_map[xdft][s2][2]);
 		}
 		/* Doing it twice so sector ID's are known when reading. */
-		p0 = 0;
-		p1 = 1;
-		for(s2=0;s2<(xdf_spt[xdft]*2);s2++)
+		p0 = p1 = 0;
+		for(s2=0;s2<(xdf_spt[xdft]);s2++)
 		{
 			fdd[d].disc[0][t][s2] = fdd[d].trackbufs[0][t] + p0;
 			p0 += (128 << fdd[d].scid[0][t][s2][3]);
@@ -700,6 +705,7 @@ void read_xdf(FILE *f, int d, int xdft)
 		{
 			read_raw_sectors(f, d, t, 1, xdf_map[xdft][s2][0], 1, xdf_map[xdft][s2][1], 1, xdf_map[xdft][s2][2], 0);
 		}
+		fdd[d].spt[t] = xdf_spt[xdft];
 	}
 
 	// Saving not implemented yet, so write-protect in order to prevent changes and corruption
@@ -1465,6 +1471,8 @@ void floppy_load_image(int d, char *fn)
 	if (strlen(fn) == 0)
 	{
 		pclog("%c: No file specified, aborting load...\n", 0x41 + d);
+		ejectdisc(d);
+		fdd[d].WP = 1;
 		return;
 	}
 
@@ -1511,6 +1519,7 @@ drive_disabled:
 			fdi_set_info(f, d);
 			fseek(f, fdd[d].RAWOFFS, SEEK_SET);
 			read_raw_or_fdi(f, d);
+			fdd[d].WP = 0;
 			break;
 		case IMGT_PEF:
 			pef_read_header(f, d);
@@ -1543,6 +1552,7 @@ drive_disabled:
 				goto fli_on_error;
 			}
 			read_raw_or_fdi(f, d);
+			if (!fdd[d].XDF)  fdd[d].WP = 0;
 			break;
 	}
         printf("Drive %c: %i sect./track, %i tracks, %i B/sect., %i shift, %i total sectors, %i sides, class %i, and image type %i\n",'A'+d,fdd[d].SECTORS,fdd[d].TRACKS,fdd[d].BPS,fdd[d].BPSCODE,fdd[d].TOTAL, fdd[d].SIDES, fdd[d].CLASS, fdd[d].IMGTYPE);
@@ -1554,12 +1564,12 @@ drive_disabled:
         fdd[d].discmodified=0;
         strcpy(discfns[d],fn);
         fdd[d].discchanged=1;
-	fdc.format_started[d] = 0;
-	fdc.track[d] = 0;
-	fdc.head[d] = 0;
-	fdc.sector[d] = 1;
-	fdc.pos[d] = 0;
-	fdc.gotdata[d] = 0;
+	fdc.format_started[vfdd[d]] = 0;
+	fdc.track[vfdd[d]] = 0;
+	fdc.head[vfdd[d]] = 0;
+	fdc.sector[vfdd[d]] = 1;
+	fdc.pos[vfdd[d]] = 0;
+	fdc.gotdata[vfdd[d]] = 0;
 }
 
 void fdd_init()

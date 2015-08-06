@@ -497,9 +497,10 @@ int loadbios()
                 return 1;
                 
                 case ROM_430FX:
-                // f = romfopen("roms/430fx/031396S.BIN", "rb");	/* Works */
+                f = romfopen("roms/430fx/031396S.BIN", "rb");	/* Works */
 		// f = romfopen("roms/430fx/P54CE_FX.bin", "rb");	/* Does NOT work */
-		f = romfopen("roms/430fx/Vca20old.bin", "rb");	/* Works */
+		// f = romfopen("roms/430fx/TR5A0115.SMC", "rb");	/* Works */
+		// f = romfopen("roms/430fx/Vca20old.bin", "rb");	/* Works */
 		// f = romfopen("roms/430fx/031396U.BIN", "rb");	/* Works */
                 if (!f) break;
                 fread(rom,           0x20000, 1, f);                
@@ -511,7 +512,9 @@ int loadbios()
                 case ROM_430VX:
 //                f = romfopen("roms/430vx/Ga586atv.bin", "rb");
 //                f = fopen("roms/430vx/vx29.BIN", "rb");
-                f = romfopen("roms/430vx/55XWUQ0E.BIN", "rb");
+//                f = romfopen("roms/430vx/55XWSQ0F.BIN", "rb");
+		f = romfopen("roms/430vx/VA021297.BIN", "rb");
+//                f = romfopen("roms/430vx/55XWUQ0E.BIN", "rb");
 //                f=romfopen("roms/430vx/430vx","rb");               
                 if (!f) break;
                 fread(rom,           0x20000, 1, f);                
@@ -1842,6 +1845,20 @@ void mem_resize()
         mem_mapping_add(&romext_mapping,  0xc8000, 0x08000, mem_read_romext, mem_read_romextw, mem_read_romextl, NULL, NULL, NULL,   romext, 0, NULL);
 
 //        pclog("Mem resize %i %i\n",mem_size,c);
+}
+
+void mem_reset_page_blocks()
+{
+        int c;
+
+        for (c = 0; c < ((mem_size * 1024 * 1024) >> 12); c++)
+        {
+                pages[c].write_b = mem_write_ramb_page;
+                pages[c].write_w = mem_write_ramw_page;
+                pages[c].write_l = mem_write_raml_page;
+                pages[c].block = NULL;
+                pages[c].block_2 = NULL;
+        }
 }
 
 int mem_a20_key = 0, mem_a20_alt = 0;

@@ -2227,6 +2227,7 @@ inrecomp=0;
                         
 //                        pclog("Hash %08x %i\n", codeblock_hash_pc[HASH(cs + pc)], codeblock_page_dirty[(cs + pc) >> 12]);
                         cpu_block_end = 0;
+			x86_was_reset = 0;
 
                         cpu_new_blocks++;
                         
@@ -2263,9 +2264,12 @@ inrecomp=0;
                                         codegen_generate_call(opcode, x86_opcodes[(opcode | op32) & 0x3ff], fetchdat, pc, pc-1);
 
                                         x86_opcodes[(opcode | op32) & 0x3ff](fetchdat);
-                                }
 
-                                if (!use32) pc &= 0xffff;
+					if (x86_was_reset)
+						break;
+                                }
+          
+				if (!use32) pc &= 0xffff;
 
                                 /*Cap source code at 4000 bytes per block; this
                                   will prevent any block from spanning more than
@@ -2288,13 +2292,14 @@ inrecomp=0;
                                 insc++;
                         }
                         
-                        if (!abrt)
+                        if (!abrt && !x86_was_reset)
                                 codegen_block_end();
 //                        output &= ~2;
                 }
 //                        if (output && (SP & 1))
 //                                fatal("odd SP\n");
                 }
+
                 cycdiff=oldcyc-cycles;                
                 tsc += cycdiff;
                 
