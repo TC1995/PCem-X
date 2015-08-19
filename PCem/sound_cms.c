@@ -1,14 +1,13 @@
-// license:BSD-3-Clause (MAME), GPL (DOSBOX), PCem (SVN)
+// license:BSD-3-Clause (MAME), GPL (DOSBOX, PCem-X)
+// PCem-X uses GPL DOSBOX deriative, patches that come from this codefile
+// into the MAME source or from the MAME source to the PCem-X source must
+// be approved for both licenses first.
 // copyright-holders:Juergen Buchmueller, Manuel Abadia
 /***************************************************************************
-
     Philips SAA1099 Sound driver
-
     By Juergen Buchmueller and Manuel Abadia
-
     SAA1099 register layout:
     ========================
-
     offs | 7654 3210 | description
     -----+-----------+---------------------------
     0x00 | ---- xxxx | Amplitude channel 0 (left)
@@ -62,15 +61,13 @@
          |           |
     0x1c | ---- ---x | All channels enable (0 = off, 1 = on)
     0x1c | ---- --x- | Synch & Reset generators
-
     Version History:
     ================
-    ??-??-200? - First version of the driver submitted for MESS (GPL/MESS license)
-    ??-??-200? - Submitted to DOSBOX for Creative Music System/Game Blaster emulation under GPL
-    ??-??-201? - MAME version relicensed to BSD 3 Clause (GPL+ compatible)
-    ??-??-201? - optimized DOSBOX version submitted to PCem by Tom Walker under GPL
+    ??-??-200? - First version of the driver submitted for MESS
+    10-15-2003 - Submitted to DOSBOX for Creative Music System/Game Blaster emulation under GPL
+    05-07-2015 - MAME version relicensed to BSD-3-Clause
+    ??-??-201? - DOSBOX version submitted to PCem by Tom Walker under GPL
     07-01-2015 - Applied clock divisor fix from DOSBOX SVN, http://www.vogons.org/viewtopic.php?p=344227#p344227
-
 ***************************************************************************/
 
 #include <stdio.h>
@@ -114,9 +111,9 @@ void cms_poll(void *p)
         {
                 switch (cms->noisetype[c >> 1][c & 1])
                 {
-                        case 0: cms->noisefreq[c >> 1][c & 1] = MASTER_SAA_CLOCK / 256; break;
-                        case 1: cms->noisefreq[c >> 1][c & 1] = MASTER_SAA_CLOCK / 512; break;
-                        case 2: cms->noisefreq[c >> 1][c & 1] = MASTER_SAA_CLOCK / 1024; break;
+                        case 0: cms->noisefreq[c >> 1][c & 1] = MASTER_SAA_CLOCK / 256 * 2; break;
+                        case 1: cms->noisefreq[c >> 1][c & 1] = MASTER_SAA_CLOCK / 512 * 2; break;
+                        case 2: cms->noisefreq[c >> 1][c & 1] = MASTER_SAA_CLOCK / 1024 * 2; break;
                         case 3: cms->noisefreq[c >> 1][c & 1] = cms->freq[c >> 1][(c & 1) * 3]; break;
                 }
         }
