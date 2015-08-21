@@ -58,7 +58,7 @@ int main()
         install_int_ex(timer_rout, BPS_TO_TIMER(100));
 	install_int_ex(onesec, BPS_TO_TIMER(1));
 	midi_init();
-        
+
         initpc();
 
         d = romset;
@@ -68,7 +68,7 @@ int main()
                 romspresent[c] = loadbios();
                 pclog("romset %i - %i\n", c, romspresent[c]);
         }
-        
+
         for (c = 0; c < ROM_MAX; c++)
         {
                 if (romspresent[c])
@@ -101,9 +101,9 @@ int main()
         }
 
         for (c = 0; c < GFX_MAX; c++)
-                gfx_present[c] = video_card_available(video_old_to_new(c));
+                gfx_present[c] = video_card_available(video_old_to_new(c, models[model].pci_only), models[model].pci_only);
 
-        if (!video_card_available(video_old_to_new(gfxcard)))
+        if (!video_card_available(video_old_to_new(gfxcard, models[model].pci_only), models[model].pci_only))
         {
                 if (gfxcard) printf("Configured video BIOS not available.\nDefaulting to available romset.");
                 for (c = GFX_MAX-1; c >= 0; c--)
@@ -140,7 +140,7 @@ int main()
 
 		if (ticks > 10)
 			ticks = 0;
-                
+
 		if ((mouse_b & 1) && !mousecapture)
 			mousecapture = 1;
 
@@ -158,7 +158,7 @@ int main()
                         ticks = 0;
                 }
         }
-        
+
         closepc();
 
 	midi_close();
