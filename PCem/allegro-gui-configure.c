@@ -367,7 +367,7 @@ pclog("video_card_available : %i\n", c);
                 {
                         strcpy(video_list[d].name, video_card_getname(c, models[model].pci_only));
                         video_list[d].num = video_new_to_old(c, models[model].pci_only);
-                        if (video_new_to_old(c, models[model].pci_only) == gfxcard)
+                        if (video_card_has_config(video_old_to_new(models[model].pci_only ? gfxcardpci : gfxcard, models[model].pci_only), models[model].pci_only))
                                 configure_dialog[4].d1 = d;
                         d++;
                 }
