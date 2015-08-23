@@ -73,6 +73,28 @@ static allegro_list_t vidspeed_list[] =
         {"", -1}
 };
 
+static allegro_list_t fdtype_list[] =
+{
+        {"3.5\" 720 kB DD", 0},
+        {"Invalid (1)", 1},
+        {"3.5\" 1.44 MB HD", 2},
+        {"3.5\" 1.25/1.44 MB HD (3-Mode)", 3},
+        {"3.5\" 2.88 MB ED", 4},
+        {"3.5\" 2.45/2.88 MB ED (3-Mode)", 5},
+        {"3.5\" 5.76 MB 2MEG", 6},
+        {"3.5\" 4.85/5.76 MB 2MEG (3-Mode)", 7},
+        {"5.25\" 360 kB DD", 8},
+        {"5.25\" 720 kB QD", 9},
+        {"5.25\" 1.2 MB HD 360 rpm", 10},
+        {"5.25\" 1.2 MB HD 300/360 rpm", 11},
+        {"5.25\" 2.4 MB ED 360 rpm", 12},
+        {"5.25\" 2.4 MB ED 300/360 rpm", 13},
+        {"5.25\" 4.8 MB ED 360 rpm", 14},
+        {"5.25\" 4.8 MB ED 300/360 rpm", 15},
+        {"Disabled", 16},
+        {"", -1}
+};
+
 static void reset_list();
 
 static char *list_proc_model(int index, int *list_size)
@@ -187,14 +209,30 @@ static char *list_proc_cpu(int index, int *list_size)
         return cpu_list[index].name;
 }
 
+static char *list_proc_fdtype(int index, int *list_size)
+{
+        if (index < 0)
+        {
+                int c = 0;
+
+                while (fdtype_list[c].name[0])
+                        c++;
+
+                *list_size = c;
+                return NULL;
+        }
+
+        return fdtype_list[index].name;
+}
+
 static int list_proc(int msg, DIALOG *d, int c);
 
 static DIALOG configure_dialog[] =
 {
-        {d_shadow_box_proc, 0, 0, 236*2,256,0,0xffffff,0,0,     0,0,0,0,0}, // 0
+        {d_shadow_box_proc, 0, 0, 236*2,308,0,0xffffff,0,0,     0,0,0,0,0}, // 0
 
-        {d_button_proc, 176,  232, 50, 14, 0, 0xffffff, 0, D_EXIT, 0, 0, "OK",     0, 0}, // 1
-        {d_button_proc, 246,  232, 50, 16, 0, 0xffffff, 0, D_EXIT, 0, 0, "Cancel", 0, 0}, // 2
+        {d_button_proc, 176,  288, 50, 14, 0, 0xffffff, 0, D_EXIT, 0, 0, "OK",     0, 0}, // 1
+        {d_button_proc, 246,  288, 50, 16, 0, 0xffffff, 0, D_EXIT, 0, 0, "Cancel", 0, 0}, // 2
 
         {list_proc,      70*2, 12,  152*2, 20, 0, 0xffffff, 0, 0,      0, 0, list_proc_model, 0, 0},
 
@@ -214,6 +252,11 @@ static DIALOG configure_dialog[] =
         {d_check_proc,   14*2, 188, 118*2, 10, 0, 0xffffff, 0, 0, 0, 0, "Gravis Ultrasound", 0, 0},
         {d_check_proc,   14*2, 204, 118*2, 10, 0, 0xffffff, 0, 0, 0, 0, "Innovation SSI-2001", 0, 0},
         {d_check_proc,   14*2, 220, 118*2, 10, 0, 0xffffff, 0, 0, 0, 0, "Composite CGA", 0, 0},
+
+        {d_text_proc,    16*2, 236,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "FD A type :", 0, 0},
+        {d_list_proc,      70*2, 236, 152*2, 20, 0, 0xffffff, 0, 0, 0, 0, list_proc_fdtype, 0, 0},
+        {d_text_proc,    16*2, 262,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "FD B type :", 0, 0},
+        {d_list_proc,      70*2, 262, 152*2, 20, 0, 0xffffff, 0, 0, 0, 0, list_proc_fdtype, 0, 0},
 
         {d_text_proc,    16*2,  16,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "Machine :", 0, 0},
         {d_text_proc,    16*2,  36,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "Video :", 0, 0},
