@@ -25,7 +25,7 @@ static int settings_sound_to_list[20], settings_list_to_sound[20];
     CONTROL         "", IDC_MEMSPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_NOTHOUSANDS | UDS_SETBUDDYINT, 98, 152, 12, 14
     LTEXT           "MB", IDC_STATIC, 98, 152, 40, 10
     CONTROL         "CMS / Game Blaster",IDC_CHECK3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,172,118,10
-    CONTROL         "Gravis Ultrasound",IDC_CHECKGUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,188,118,10    
+    CONTROL         "Gravis Ultrasound",IDC_CHECKGUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,188,118,10
     CONTROL         "Innovation SSI-2001",IDC_CHECKSSI,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,204,118,10
     CONTROL         "Composite CGA",IDC_CHECK4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,220,118,10
     LTEXT           "Machine :",IDC_STATIC,15,16,40,10
@@ -33,7 +33,7 @@ static int settings_sound_to_list[20], settings_list_to_sound[20];
     LTEXT           "CPU type :",IDC_STATIC,15,56,34,10
     LTEXT           "CPU :",IDC_STATIC,15,76,34,10
     LTEXT           "Cache :",IDC_STATIC,15,96,40,10
-    LTEXT           "Video speed :",IDC_STATIC,15,116,40,10    
+    LTEXT           "Video speed :",IDC_STATIC,15,116,40,10
     LTEXT           "Soundcard :",IDC_STATIC,15,136,40,10
     LTEXT           "Memory :",IDC_STATIC,15,156,40,10
 #endif
@@ -71,7 +71,29 @@ static allegro_list_t vidspeed_list[] =
         {"Mid  VLB/PCI", 4},
         {"Fast VLB/PCI", 5},
         {"", -1}
-};                
+};
+
+static allegro_list_t fdtype_list[] =
+{
+        {"3.5\" 720 kB DD", 0},
+        {"Invalid (1)", 1},
+        {"3.5\" 1.44 MB HD", 2},
+        {"3.5\" 1.25/1.44 MB HD (3-Mode)", 3},
+        {"3.5\" 2.88 MB ED", 4},
+        {"3.5\" 2.45/2.88 MB ED (3-Mode)", 5},
+        {"3.5\" 5.76 MB 2MEG", 6},
+        {"3.5\" 4.85/5.76 MB 2MEG (3-Mode)", 7},
+        {"5.25\" 360 kB DD", 8},
+        {"5.25\" 720 kB QD", 9},
+        {"5.25\" 1.2 MB HD 360 rpm", 10},
+        {"5.25\" 1.2 MB HD 300/360 rpm", 11},
+        {"5.25\" 2.4 MB ED 360 rpm", 12},
+        {"5.25\" 2.4 MB ED 300/360 rpm", 13},
+        {"5.25\" 4.8 MB ED 360 rpm", 14},
+        {"5.25\" 4.8 MB ED 300/360 rpm", 15},
+        {"Disabled", 16},
+        {"", -1}
+};
 
 static void reset_list();
 
@@ -80,14 +102,14 @@ static char *list_proc_model(int index, int *list_size)
         if (index < 0)
         {
                 int c = 0;
-                
+
                 while (model_list[c].name[0])
                         c++;
 
                 *list_size = c;
                 return NULL;
         }
-        
+
         return model_list[index].name;
 }
 
@@ -96,14 +118,14 @@ static char *list_proc_video(int index, int *list_size)
         if (index < 0)
         {
                 int c = 0;
-                
+
                 while (video_list[c].name[0])
                         c++;
 
                 *list_size = c;
                 return NULL;
         }
-        
+
         return video_list[index].name;
 }
 
@@ -112,14 +134,14 @@ static char *list_proc_cache(int index, int *list_size)
         if (index < 0)
         {
                 int c = 0;
-                
+
                 while (cache_list[c].name[0])
                         c++;
 
                 *list_size = c;
                 return NULL;
         }
-        
+
         return cache_list[index].name;
 }
 
@@ -128,14 +150,14 @@ static char *list_proc_vidspeed(int index, int *list_size)
         if (index < 0)
         {
                 int c = 0;
-                
+
                 while (vidspeed_list[c].name[0])
                         c++;
 
                 *list_size = c;
                 return NULL;
         }
-        
+
         return vidspeed_list[index].name;
 }
 
@@ -144,14 +166,14 @@ static char *list_proc_sound(int index, int *list_size)
         if (index < 0)
         {
                 int c = 0;
-                
+
                 while (sound_list[c].name[0])
                         c++;
 
                 *list_size = c;
                 return NULL;
         }
-        
+
         return sound_list[index].name;
 }
 
@@ -160,14 +182,14 @@ static char *list_proc_cpumanu(int index, int *list_size)
         if (index < 0)
         {
                 int c = 0;
-                
+
                 while (cpumanu_list[c].name[0])
                         c++;
 
                 *list_size = c;
                 return NULL;
         }
-        
+
         return cpumanu_list[index].name;
 }
 
@@ -176,25 +198,41 @@ static char *list_proc_cpu(int index, int *list_size)
         if (index < 0)
         {
                 int c = 0;
-                
+
                 while (cpu_list[c].name[0])
                         c++;
 
                 *list_size = c;
                 return NULL;
         }
-        
+
         return cpu_list[index].name;
+}
+
+static char *list_proc_fdtype(int index, int *list_size)
+{
+        if (index < 0)
+        {
+                int c = 0;
+
+                while (fdtype_list[c].name[0])
+                        c++;
+
+                *list_size = c;
+                return NULL;
+        }
+
+        return fdtype_list[index].name;
 }
 
 static int list_proc(int msg, DIALOG *d, int c);
 
 static DIALOG configure_dialog[] =
 {
-        {d_shadow_box_proc, 0, 0, 236*2,256,0,0xffffff,0,0,     0,0,0,0,0}, // 0
+        {d_shadow_box_proc, 0, 0, 236*2,308,0,0xffffff,0,0,     0,0,0,0,0}, // 0
 
-        {d_button_proc, 176,  232, 50, 14, 0, 0xffffff, 0, D_EXIT, 0, 0, "OK",     0, 0}, // 1
-        {d_button_proc, 246,  232, 50, 16, 0, 0xffffff, 0, D_EXIT, 0, 0, "Cancel", 0, 0}, // 2
+        {d_button_proc, 176,  288, 50, 14, 0, 0xffffff, 0, D_EXIT, 0, 0, "OK",     0, 0}, // 1
+        {d_button_proc, 246,  288, 50, 16, 0, 0xffffff, 0, D_EXIT, 0, 0, "Cancel", 0, 0}, // 2
 
         {list_proc,      70*2, 12,  152*2, 20, 0, 0xffffff, 0, 0,      0, 0, list_proc_model, 0, 0},
 
@@ -205,15 +243,20 @@ static DIALOG configure_dialog[] =
         {d_list_proc,    70*2,  92, 152*2, 20, 0, 0xffffff, 0, 0, 0, 0, list_proc_cache, 0, 0},
         {d_list_proc,    70*2, 112, 152*2, 20, 0, 0xffffff, 0, 0, 0, 0, list_proc_vidspeed, 0, 0},
         {list_proc,      70*2, 132, 152*2, 20, 0, 0xffffff, 0, 0, 0, 0, list_proc_sound, 0, 0}, //9
-        
+
         {d_edit_proc,    70*2, 156,    32, 14, 0, 0xffffff, 0, 0, 3, 0, mem_size_str, 0, 0},
-                        
+
         {d_text_proc,    98*2, 156,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "MB", 0, 0},
-        
+
         {d_check_proc,   14*2, 172, 118*2, 10, 0, 0xffffff, 0, 0, 0, 0, "CMS / Game Blaster", 0, 0},
         {d_check_proc,   14*2, 188, 118*2, 10, 0, 0xffffff, 0, 0, 0, 0, "Gravis Ultrasound", 0, 0},
         {d_check_proc,   14*2, 204, 118*2, 10, 0, 0xffffff, 0, 0, 0, 0, "Innovation SSI-2001", 0, 0},
         {d_check_proc,   14*2, 220, 118*2, 10, 0, 0xffffff, 0, 0, 0, 0, "Composite CGA", 0, 0},
+
+        {d_text_proc,    16*2, 236,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "FD A type :", 0, 0},
+        {d_list_proc,      70*2, 236, 152*2, 20, 0, 0xffffff, 0, 0, 0, 0, list_proc_fdtype, 0, 0},
+        {d_text_proc,    16*2, 262,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "FD B type :", 0, 0},
+        {d_list_proc,      70*2, 262, 152*2, 20, 0, 0xffffff, 0, 0, 0, 0, list_proc_fdtype, 0, 0},
 
         {d_text_proc,    16*2,  16,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "Machine :", 0, 0},
         {d_text_proc,    16*2,  36,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "Video :", 0, 0},
@@ -223,7 +266,7 @@ static DIALOG configure_dialog[] =
         {d_text_proc,    16*2, 116,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "Video speed :", 0, 0},
         {d_text_proc,    16*2, 136,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "Soundcard :", 0, 0},
         {d_text_proc,    16*2, 156,  40, 10, 0, 0xffffff, 0, 0, 0, 0, "Memory :", 0, 0},
-        
+
         {0,0,0,0,0,0,0,0,0,0,0,NULL,NULL,NULL}
 };
 
@@ -231,7 +274,7 @@ static int list_proc(int msg, DIALOG *d, int c)
 {
         int old = d->d1;
         int ret = d_list_proc(msg, d, c);
-        
+
         if (d->d1 != old)
         {
                 int new_model = model_list[configure_dialog[3].d1].num;
@@ -255,7 +298,7 @@ static void reset_list()
         int cpumanu = configure_dialog[5].d1;
         int cpu = configure_dialog[6].d1;
         int c;
-        
+
         memset(cpumanu_list, 0, sizeof(cpumanu_list));
         memset(cpu_list, 0, sizeof(cpu_list));
 
@@ -266,7 +309,7 @@ static void reset_list()
                 cpumanu_list[c].num = c;
                 c++;
         }
-        
+
         if (cpumanu >= c)
                 cpumanu = configure_dialog[6].d1 = c-1;
 
@@ -285,7 +328,7 @@ static void reset_list()
 int settings_configure()
 {
         int c, d;
-        
+
         memset(model_list, 0, sizeof(model_list));
         memset(video_list, 0, sizeof(video_list));
         memset(sound_list, 0, sizeof(sound_list));
@@ -315,16 +358,16 @@ int settings_configure()
         c = d = 0;
         while (1)
         {
-                char *s = video_card_getname(c);
+                char *s = video_card_getname(c, models[model].pci_only);
 
                 if (!s[0])
                         break;
 pclog("video_card_available : %i\n", c);
-                if (video_card_available(c))
+                if (video_card_available(c, models[model].pci_only))
                 {
-                        strcpy(video_list[d].name, video_card_getname(c));
-                        video_list[d].num = video_new_to_old(c);
-                        if (video_new_to_old(c) == gfxcard)
+                        strcpy(video_list[d].name, video_card_getname(c, models[model].pci_only));
+                        video_list[d].num = video_new_to_old(c, models[model].pci_only);
+                        if (video_new_to_old(c, models[model].pci_only) == gfxcard)
                                 configure_dialog[4].d1 = d;
                         d++;
                 }
@@ -385,15 +428,15 @@ pclog("video_card_available : %i\n", c);
                 configure_dialog[15].flags &= ~D_SELECTED;
 
         sprintf(mem_size_str, "%i", mem_size);
-        
+
         while (1)
         {
                 position_dialog(configure_dialog, SCREEN_W/2 - 272, SCREEN_H/2 - 256/2);
-        
+
                 c = popup_dialog(configure_dialog, 1);
 
                 position_dialog(configure_dialog, -(SCREEN_W/2 - 272), -(SCREEN_H/2 - 256/2));
-                
+
                 if (c == 1)
                 {
                         int new_model = model_list[configure_dialog[3].d1].num;
@@ -406,15 +449,15 @@ pclog("video_card_available : %i\n", c);
                         int new_GAMEBLASTER = (configure_dialog[12].flags & D_SELECTED) ? 1 : 0;
                         int new_GUS = (configure_dialog[13].flags & D_SELECTED) ? 1 : 0;
                         int new_SSI2001 = (configure_dialog[14].flags & D_SELECTED) ? 1 : 0;
-                        
+
                         sscanf(mem_size_str, "%i", &new_mem_size);
                         if (new_mem_size < 1 || new_mem_size > 256)
                         {
                                 alert("Invalid memory size", "Memory must be between 1 and 256 MB", NULL, "OK", NULL, 0, 0);
                                 continue;
                         }
-                        
-                        if (new_model != model || new_gfxcard != gfxcard || new_mem_size != mem_size || 
+
+                        if (new_model != model || new_gfxcard != gfxcard || new_mem_size != mem_size ||
                             new_has_fpu != hasfpu || new_GAMEBLASTER != GAMEBLASTER || new_GUS != GUS ||
                             new_SSI2001 != SSI2001 || new_sndcard != sound_card_current)
                         {
@@ -431,7 +474,7 @@ pclog("video_card_available : %i\n", c);
                                 GUS = new_GUS;
                                 SSI2001 = new_SSI2001;
                                 sound_card_current = new_sndcard;
-                                        
+
                                 mem_resize();
                                 loadbios();
                                 resetpchard();
@@ -444,21 +487,20 @@ pclog("video_card_available : %i\n", c);
                         cpu_manufacturer = new_cpu_m;
                         cpu = new_cpu;
                         cpu_set();
-                        
+
                         cache = configure_dialog[9].d1;
                         mem_updatecache();
-                        
+
                         saveconfig();
 
                         speedchanged();
 
                         return D_O_K;
                 }
-                
+
                 if (c == 2)
                         return D_O_K;
         }
-        
+
         return D_O_K;
 }
-
