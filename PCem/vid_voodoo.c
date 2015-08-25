@@ -4373,3 +4373,4 @@ device_t voodoo_device =
         voodoo_add_status_info,
         voodoo_config
 };
+

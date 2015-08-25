@@ -663,7 +663,7 @@ void cirrus_bitblt_start(clgd_t *clgd, svga_t *svga)
 		clgd->blt.src_addr,
 		svga->gdcreg[0x2f]);
 #endif
-                
+
 #ifdef LEGACY_CIRRUS_MAPPING
 	if (clgd->blt.mode & 0x04)
 	{

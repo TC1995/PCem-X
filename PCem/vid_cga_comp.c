@@ -211,7 +211,7 @@ void IncreaseHue(bool pressed) {
 		return;
 	hue_offset += 5.0;
 	// update_cga16_color();
-	pclog("Hue at %f", hue_offset); 
+	pclog("Hue at %f", hue_offset);
 }
 
 void DecreaseHue(bool pressed) {
@@ -219,6 +219,5 @@ void DecreaseHue(bool pressed) {
 		return;
 	hue_offset -= 5.0;
 	// update_cga16_color();
-	pclog("Hue at %f", hue_offset); 
+	pclog("Hue at %f", hue_offset);
 }
-
