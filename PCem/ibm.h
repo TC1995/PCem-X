@@ -503,8 +503,6 @@ extern int cdrom_enabled;
 
 /*Networking*/
 #define NE2000      1
-extern uint8_t ethif;
-extern int inum;
 
 void pclog(const char *format, ...);
 extern int nmi;
