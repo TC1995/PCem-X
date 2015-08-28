@@ -34,7 +34,11 @@
 
 #include "slirp/slirp.h"
 #include "slirp/queue.h"
+<<<<<<< HEAD
 #ifdef __MINGW64__
+=======
+#ifndef __MINGW64__
+>>>>>>> master
 #include <pcap.h>
 #endif
 
@@ -50,9 +54,15 @@
 //THIS IS THE DEFAULT MAC ADDRESS .... so it wont place nice with multiple VMs. YET.
 uint8_t maclocal[6] = {0xac, 0xde, 0x48, 0x88, 0xbb, 0xaa};
 
+#ifndef __MINGW64__
 #define NETBLOCKING 0		//we won't block our pcap
+#endif
 
+<<<<<<< HEAD
 #ifdef __MINGW64__
+=======
+#ifndef __MINGW64__
+>>>>>>> master
 static HINSTANCE net_hLib = 0;                      /* handle to DLL */
 static char* net_lib_name = "wpcap.dll";
 pcap_t *net_pcap;
@@ -833,12 +843,20 @@ if(net_is_slirp) {
 	slirp_input(&ne2000->mem[ne2000->tx_page_start*256 - BX_NE2K_MEMSTART], ne2000->tx_bytes);
 	pclog("ne2000 slirp sending packet\n");
 	}
+<<<<<<< HEAD
 #ifdef __MINGW64__
+=======
+#ifndef __MINGW64__
+>>>>>>> master
 if(net_is_pcap && net_pcap!=NULL) {
 	_pcap_sendpacket(net_pcap, &ne2000->mem[ne2000->tx_page_start*256 - BX_NE2K_MEMSTART], ne2000->tx_bytes);
 	pclog("ne2000 pcap sending packet\n");
 	}
 #endif
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
     ne2000_tx_event(value, ne2000);
     // Schedule a timer to trigger a tx-complete interrupt
     // The number of microseconds is the bit-time / 10.
@@ -1331,8 +1349,9 @@ static void ne2000_poller(void *p)
     ne2000_t *ne2000 = (ne2000_t *)p;
     struct queuepacket *qp;
     const unsigned char *data;
+#ifndef __MINGW64__
     struct pcap_pkthdr h;
-
+#endif
 
 	int res;
 if(net_is_slirp) {
@@ -1351,7 +1370,11 @@ if(net_is_slirp) {
 	fizz++;
 	if(fizz>1200){fizz=0;slirp_tic();}
 	}//end slirp
+<<<<<<< HEAD
 #ifdef __MINGW64__
+=======
+#ifndef __MINGW64__
+>>>>>>> master
 if(net_is_pcap  && net_pcap!=NULL)
 	{
 	data=_pcap_next(net_pcap,&h);
@@ -1389,6 +1412,7 @@ void *ne2000_init()
     //0 pcap
     //1 slirp
     //
+#ifndef __MINGW64__
     net_is_slirp = config_get_int(NULL, "net_type", 1);
     pclog("ne2000 pcap device %s\n",config_get_string(NULL,"pcap_device","nothing"));
    
@@ -1403,6 +1427,10 @@ void *ne2000_init()
     if( net_is_slirp == 0) 
 	net_is_pcap = 1;
     }
+#else
+	net_is_slirp = 1;
+	net_is_pcap = 0;
+#endif
 
     io_sethandler(addr, 0x0010, ne2000_read, NULL, NULL, ne2000_write, NULL, NULL, ne2000);
     io_sethandler(addr+0x10, 0x0010, ne2000_asic_read_b, ne2000_asic_read_w, NULL, ne2000_asic_write_b, ne2000_asic_write_w, NULL, ne2000);
@@ -1446,7 +1474,11 @@ void *ne2000_init()
 	net_is_slirp=0;
 	}
     }
+<<<<<<< HEAD
 #ifdef __MINGW64__
+=======
+#ifndef __MINGW64__
+>>>>>>> master
     if ( net_is_pcap ) {	//pcap
     	 char errbuf[32768];
 
@@ -1550,6 +1582,10 @@ void *ne2000_init()
         }
     } //end pcap setup
 #endif
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
     //timer_add(slirp_tic,&delay,TIMER_ALWAYS_ENABLED,NULL);
     //timer_add(keyboard_amstrad_poll, &keybsenddelay, TIMER_ALWAYS_ENABLED,  NULL);
 pclog("ne2000 is_slirp %d is_pcap %d\n",net_is_slirp,net_is_pcap);
@@ -1567,7 +1603,11 @@ if(net_is_slirp) {
 	net_slirp_inited=0;
 	pclog("ne2000 exiting slirp\n");
 	}
+<<<<<<< HEAD
 #ifdef __MINGW64__
+=======
+#ifndef __MINGW64__
+>>>>>>> master
 if(net_is_pcap && net_pcap!=NULL)
 	{
 	_pcap_close(net_pcap);
