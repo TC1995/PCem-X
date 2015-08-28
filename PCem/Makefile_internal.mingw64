@@ -1,4 +1,4 @@
-VPATH = . dosbox resid-fp
+VPATH = . dosbox resid-fp slirp
 CPP  = g++.exe
 CC   = gcc.exe
 WINDRES = windres.exe
