@@ -20,6 +20,9 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #endif
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 int codegen_flags_changed = 0;
 int codegen_fpu_entered = 0;
@@ -64,7 +67,11 @@ void codegen_init()
 	long pagemask = ~(pagesize - 1);
 #endif
         
+#if WIN32
+        codeblock = VirtualAlloc(NULL, BLOCK_SIZE * sizeof(codeblock_t), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+#else
         codeblock = malloc(BLOCK_SIZE * sizeof(codeblock_t));
+#endif
         codeblock_hash = malloc(HASH_SIZE * sizeof(codeblock_t *));
 
         memset(codeblock, 0, BLOCK_SIZE * sizeof(codeblock_t));
