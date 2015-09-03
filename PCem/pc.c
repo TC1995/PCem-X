@@ -347,7 +347,7 @@ void initpc()
                 device_add(&ssi2001_device);
         if (voodoo_enabled)
                 device_add(&voodoo_device);
-
+			
         pc_reset();
 
         // pit_reset();
@@ -678,7 +678,7 @@ void loadconfig(char *fn)
         GAMEBLASTER = config_get_int(NULL, "gameblaster", 0);
         GUS = config_get_int(NULL, "gus", 0);
         SSI2001 = config_get_int(NULL, "ssi2001", 0);
-	voodoo_enabled = config_get_int(NULL, "voodoo", 0);
+		voodoo_enabled = config_get_int(NULL, "voodoo", 0);
 
         model = config_get_int(NULL, "model", 14);
 
@@ -701,15 +701,15 @@ void loadconfig(char *fn)
         p = (char *)config_get_string(NULL, "disc_a", "");
         if (p) strcpy(discfns[0], p);
         else   strcpy(discfns[0], "");
-	configure_from_int(0, config_get_int(NULL, "drivetype_a", 8));
+		configure_from_int(0, config_get_int(NULL, "drivetype_a", 8));
 
         p = (char *)config_get_string(NULL, "disc_b", "");
         if (p) strcpy(discfns[1], p);
         else   strcpy(discfns[1], "");
-	configure_from_int(1, config_get_int(NULL, "drivetype_b", 8));
+		configure_from_int(1, config_get_int(NULL, "drivetype_b", 8));
 
-	force_43 = config_get_int(NULL, "force_43", 0);
-	ps1xtide = config_get_int(NULL, "ps1xtide", 0);
+		force_43 = config_get_int(NULL, "force_43", 0);
+		ps1xtide = config_get_int(NULL, "ps1xtide", 0);
 
         mem_size = config_get_int(NULL, "mem_size", 4);
         cdrom_drive = config_get_int(NULL, "cdrom_drive", 0);

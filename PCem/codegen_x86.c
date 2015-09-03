@@ -24,6 +24,10 @@
 #include <windows.h>
 #endif
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 int codegen_flags_changed = 0;
 int codegen_fpu_entered = 0;
 int codegen_fpu_loaded_iq[8];
@@ -67,8 +71,13 @@ void codegen_init()
 	long pagemask = ~(pagesize - 1);
 #endif
 
+<<<<<<< HEAD
 #if defined WIN32 || defined _WIN32 || defined _WIN32
         codeblock = VirtualAlloc(NULL, BLOCK_SIZE * sizeof(codeblock_t), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+=======
+#if WIN32
+		codeblock = VirtualAlloc(NULL, BLOCK_SIZE * sizeof(codeblock_t), MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+>>>>>>> 921dd7c4d3a76f2393627db723602448daaa3de7
 #else
         codeblock = malloc(BLOCK_SIZE * sizeof(codeblock_t));
 #endif

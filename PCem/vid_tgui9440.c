@@ -311,7 +311,16 @@ void tgui_recalctimings(svga_t *svga)
         if (tgui->oldctrl2 & 0x10) /*I'm not convinced this is the right register for this function*/
            svga->lowres=0;
 
-	svga->lowres = !(svga->crtc[0x2a] & 0x40); 
+        // svga->interlace = svga->crtc[0x1e] & 4;
+        if (svga->crtc[0x1e] & 4)
+	{
+                svga->rowoffset >>= 1;
+		svga->vtotal *= 2;
+		svga->dispend *= 2;
+		svga->vblankstart *= 2;
+		svga->vsyncstart *= 2;
+		svga->split *= 2;
+	}
 
         svga->interlace = svga->crtc[0x1e] & 4;
         
