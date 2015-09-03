@@ -28,8 +28,8 @@ SLIRPOBJ = bootp.o ip_icmp.o misc.o socket.o tcp_timer.o cksum.o ip_input.o queu
 
 LIBS = -mwindows -lwinmm -lopenal32 -lddraw -ldinput -ldxguid -lgcov -ld3d9 -lwsock32 -liphlpapi -lstdc++ -static-libstdc++ -static-libgcc
 
-PCem-X.exe: $(OBJ) $(FMOBJ) $(SIDOBJ) $(SLIRPOBJ)
-	$(CC) $(OBJ) $(FMOBJ) $(SIDOBJ) $(SLIRPOBJ) -o "PCem-X.exe" $(LIBS)
+PCem_X.exe: $(OBJ) $(FMOBJ) $(SIDOBJ) $(SLIRPOBJ)
+	$(CC) $(OBJ) $(FMOBJ) $(SIDOBJ) $(SLIRPOBJ) -o "PCem_X.exe" $(LIBS)
 
 all : PCem-X.exe
 
