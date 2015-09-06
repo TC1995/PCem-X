@@ -21,13 +21,20 @@ static inline void fetch_ea_32_long(uint32_t rmdat)
         eal_r = eal_w = NULL;
         easeg = ea_seg->base;
         ea_rseg = ea_seg->seg;
+        uint32_t ealimit = ea_seg->limit;
+		uint8_t eaaccess = ea_seg->access;
+		int expanddown = ((eaaccess & 0x8) == 0 && eaaccess & 4) ? 1 : 0;
+		
         if (easeg != 0xFFFFFFFF && ((easeg + eaaddr) & 0xFFF) <= 0xFFC)
         {
-                uint32_t addr = easeg + eaaddr;
-                if ( readlookup2[addr >> 12] != -1)
-                   eal_r = (uint32_t *)(readlookup2[addr >> 12] + addr);
-                if (writelookup2[addr >> 12] != -1)
-                   eal_w = (uint32_t *)(writelookup2[addr >> 12] + addr);
+				if((expanddown && (eaaddr > ealimit)) || (!expanddown && (eaaddr <= ealimit)))
+				{
+						uint32_t addr = easeg + eaaddr;
+						if ( readlookup2[addr >> 12] != -1)
+							eal_r = (uint32_t *)(readlookup2[addr >> 12] + addr);
+						if (writelookup2[addr >> 12] != -1)
+							eal_w = (uint32_t *)(writelookup2[addr >> 12] + addr);
+				}
         }
 }
 
@@ -36,13 +43,20 @@ static inline void fetch_ea_16_long(uint32_t rmdat)
         eal_r = eal_w = NULL;
         easeg = ea_seg->base;
         ea_rseg = ea_seg->seg;
+        uint32_t ealimit = ea_seg->limit;
+		uint8_t eaaccess = ea_seg->access;
+		int expanddown = ((eaaccess & 0x8) == 0 && eaaccess & 4) ? 1 : 0;
+		
         if (easeg != 0xFFFFFFFF && ((easeg + eaaddr) & 0xFFF) <= 0xFFC)
         {
-                uint32_t addr = easeg + eaaddr;
-                if ( readlookup2[addr >> 12] != -1)
-                   eal_r = (uint32_t *)(readlookup2[addr >> 12] + addr);
-                if (writelookup2[addr >> 12] != -1)
-                   eal_w = (uint32_t *)(writelookup2[addr >> 12] + addr);
+				if((expanddown && (eaaddr > ealimit)) || (!expanddown && (eaaddr <= ealimit)))
+				{
+						uint32_t addr = easeg + eaaddr;
+						if ( readlookup2[addr >> 12] != -1)
+							eal_r = (uint32_t *)(readlookup2[addr >> 12] + addr);
+						if (writelookup2[addr >> 12] != -1)
+							eal_w = (uint32_t *)(writelookup2[addr >> 12] + addr);
+				}
         }
 }
 
