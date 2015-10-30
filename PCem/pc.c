@@ -19,33 +19,34 @@
 #include "sound_gus.h"
 #include "ide.h"
 #include "keyboard.h"
-#include "keyboard_at.h"
 #include "model.h"
 #include "mouse.h"
-#ifndef __unix
-#include "nethandler.h"
-#endif
 #include "nvr.h"
 #include "pc.h"
 #include "pic.h"
 #include "pit.h"
-#include "plat-keyboard.h"
 #include "plat-joystick.h"
-#include "plat-midi.h"
 #include "plat-mouse.h"
 #include "serial.h"
 #include "sound.h"
 #include "sound_cms.h"
 #include "sound_opl.h"
 #include "sound_sb.h"
-#include "sound_speaker.h"
 #include "sound_ssi2001.h"
 #include "timer.h"
-#include "video.h"
-#include "vid_svga.h"
-#include "vid_svga_render.h"
 #include "vid_voodoo.h"
+#include "video.h"
 #include "win-display.h"
+//NETWORK
+//Make sure your makefile defines USE_NETWORKING
+//if you want this code...
+// #ifdef USE_NETWORKING
+#include "nethandler.h"
+#define NE2000      1
+#define RTL8029AS   2
+uint8_t ethif;
+int inum;
+// #endif
 
 int frame = 0;
 
@@ -60,6 +61,7 @@ int insc=0;
 float mips,flops;
 extern int mmuflush;
 extern int readlnum,writelnum;
+void fullspeed();
 
 int framecount,fps;
 int intcount;
@@ -70,68 +72,39 @@ int atfullspeed;
 void saveconfig();
 int infocus;
 int mousecapture;
+FILE *pclogf;
 void pclog(const char *format, ...)
 {
 #ifndef RELEASE_BUILD
-   // char buf[1024];
+   char buf[1024];
    //return;
-   /* if (!pclogf)
-      pclogf=fopen("pclog.txt","wt"); */
-   // pclogf=fopen("pclog.txt","at");
-   // if (pclogf==NULL)  return;
+   if (!pclogf)
+      pclogf=fopen("pclog.txt","wt");
 //return;
    va_list ap;
    va_start(ap, format);
-   vprintf(format, ap);
+   vsprintf(buf, format, ap);
    va_end(ap);
-   fflush(stdout);
-   // fputs(buf, stdout);
-   // fputs(buf,pclogf);
-   // fclose(pclogf);
-
-#ifdef REAL_TIME_LOG
-   if (!rtlog)
-   {
-	/* Allocate 10 MB for in-memory log */
-	rtlog = (uint8_t *) malloc(10485760);
-   }
-   if (strlen(rtlog) + strlen(buf) + 2 >= 10485760)
-   {
-	free(rtlog);
-	/* Allocate 10 MB for in-memory log */
-	rtlog = (uint8_t *) malloc(10485760);
-   }
-   // strcat(rtlog, "\r\n");
-   // strcat(rtlog, buf);
-   // debug_update();
-#endif
+   fputs(buf,pclogf);
 //fflush(pclogf);
 #endif
 }
 
 void fatal(const char *format, ...)
 {
-   // char buf[256];
+   char buf[256];
 //   return;
-   /* if (!pclogf)
-      pclogf=fopen("pclog.txt","wt"); */
-   // pclogf=fopen("pclog.txt","at");
-   // if (pclogf==NULL)  pclogf=fopen("pclog.txt","wt");
-   // if (pclogf==NULL)  return;
+   if (!pclogf)
+      pclogf=fopen("pclog.txt","wt");
 //return;
    va_list ap;
    va_start(ap, format);
-   vprintf(format, ap);
+   vsprintf(buf, format, ap);
    va_end(ap);
-   closeide();
-   fflush(stdout);
-   // fputs(buf,stdout);
-   // fflush(pclogf);
-   // free(rtlog);
+   fputs(buf,pclogf);
+   fflush(pclogf);
    dumppic();
    dumpregs();
-   fflush(stdout);
-   // fclose(pclogf);
    exit(-1);
 }
 
@@ -169,7 +142,7 @@ int clocks[3][34][4]=
 {
 	// 4772728
         {
-                {4772727,13920,59660,5965},  /*4.77MHz*/
+                {4772727,13920,65625,5965},  /*4.77MHz*/
                 {8000000,23333,110000,0}, /*8MHz*/
                 {10000000,29166,137500,0}, /*10MHz*/
                 {12000000,35000,165000,0}, /*12MHz*/
@@ -235,7 +208,7 @@ void pc_reset()
 {
         cpu_set();
         resetx86();
-	mem_updatecache();
+        mem_updatecache();
         //timer_reset();
         dma_reset();
         fdc_reset();
@@ -243,91 +216,82 @@ void pc_reset()
         pit_reset();
         serial_reset();
 
-	pclog("PIT\n");
         setpitclock(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed);
-	pclog("After PIT\n");
-
+        
 //        sb_reset();
 
         ali1429_reset();
 //        video_init();
-//	fatal("Floppy properties: %i %i\n", int_from_config(0), int_from_config(1));
 }
 
 void initpc()
 {
         char *p;
-	int delay = 0;
-
 //        allegro_init();
         get_executable_name(pcempath,511);
         pclog("executable_name = %s\n", pcempath);
         p=get_filename(pcempath);
         *p=0;
-        pclog("path = %s\n", pcempath);
+        pclog("path = %s\n", pcempath);        
 
 	fdd_init();
         keyboard_init();
         mouse_init();
         joystick_init();
         midi_init();
-
+        
         loadconfig(NULL);
         pclog("Config loaded\n");
 
-	pclog("Loading pre-EGA font ROMs...\n");
 	loadfont("mda.rom", 0, cga_fontdat, cga_fontdatm);
 	loadfont("roms/pc1512/40078.ic127", 0, pc1512_fontdat, pc1512_fontdatm);
 	loadfont("roms/pc200/40109.bin", 0, pc200_fontdat, pc200_fontdatm);
 
         codegen_init();
-
-	pclog("After breakpoint!\n");
-
+        
         cpuspeed2=(AT)?2:1;
 //        cpuspeed2=cpuspeed;
         atfullspeed=0;
 
-        device_init();
-
+        device_init();        
+        
         initvideo();
         mem_init();
         loadbios();
         mem_add_bios();
+                        
+        timer_reset();
+        sound_reset();
+	fdc_init();
+// #ifdef USE_NETWORKING
+	vlan_reset();	//NETWORK
+	network_card_init(network_card_current);
+// #endif
 
         loaddisc(0,discfns[0]);
         loaddisc(1,discfns[1]);
-
-        timer_reset();
-        sound_reset();
-#ifndef __unix
-        vlan_reset();
-#endif
-	fdc_init();
-
+                
         //loadfont();
         loadnvr();
         sound_init();
-        model_init();
         resetide();
 #if __unix
 	if (cdrom_drive == -1)
-	        cdrom_null_open(cdrom_drive);
+	        cdrom_null_open(cdrom_drive);	
 	else
 #endif
 	        ioctl_open(cdrom_drive);
-
-        pit_reset();
+        
+        pit_reset();        
 /*        if (romset==ROM_AMI386 || romset==ROM_AMI486) */fullspeed();
         ali1429_reset();
 //        CPUID=(is486 && (cpuspeed==7 || cpuspeed>=9));
 //        pclog("Init - CPUID %i %i\n",CPUID,cpuspeed);
         shadowbios=0;
-
-	old_cdrom_drive = cdrom_drive;
+        
 #if __unix
 	if (cdrom_drive == -1)
-	        cdrom_null_reset();
+	        cdrom_null_reset();	
 	else
 #endif
 	        ioctl_reset();
@@ -388,17 +352,17 @@ int pcfirsttime = 1;
 
 void resetpchard()
 {
-        device_close_all();
+	if (!modelchanged)
+	        device_close_all();
+	else
+		modelchanged = 0;
         device_init();
-
-	midi_close();
-	midi_init();
-
+        
+        midi_close();
+        midi_init();
+        
         timer_reset();
         sound_reset();
-#ifndef __unix
-        vlan_reset();
-#endif
         mem_resize();
 
 	if (pcfirsttime)
@@ -408,29 +372,29 @@ void resetpchard()
 	}
 	else
 	        fdc_hard_reset();
-
+        
         model_init();
         video_init();
-
-        if (voodoo_enabled && (VID_SVGA))
-                device_add(&voodoo_device);
-
         speaker_init();
+
+// #ifdef USE_NETWORKING
+	vlan_reset();	//NETWORK
+	network_card_init(network_card_current);      
+// #endif
+        
         sound_card_init(sound_card_current);
-#ifndef __unix
-        network_card_init(network_card_current);
-#endif
         if (GUS)
                 device_add(&gus_device);
         if (GAMEBLASTER)
                 device_add(&cms_device);
         if (SSI2001)
                 device_add(&ssi2001_device);
-
+        if (voodoo_enabled)
+                device_add(&voodoo_device);        
         pc_reset();
-
+        
         resetide();
-
+        
         loadnvr();
 
 //        cpuspeed2 = (AT)?2:1;
@@ -439,15 +403,14 @@ void resetpchard()
 
         shadowbios = 0;
         ali1429_reset();
-
+        
         keyboard_at_reset();
-
+        
 //        output=3;
 
-	old_cdrom_drive = cdrom_drive;
 #if __unix
 	if (cdrom_drive == -1)
-	        cdrom_null_reset();
+	        cdrom_null_reset();	
 	else
 #endif
 	        ioctl_reset();
@@ -490,19 +453,19 @@ void runpc()
 
         startblit();
         clockrate = models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed;
-
+        
         if (is386)   
         {
                 if (cpu_use_dynarec)
-                        exec386_dynarec(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / 100);
+                        exec386_dynarec(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / (turbo ? 100 : 200));
                 else
-                        exec386(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / 100);
+                        exec386(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / (turbo ? 100 : 200));
         }
         else if (AT || is_nonat_286())
-                exec386(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / 100);
+                exec386(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / (turbo ? 100 : 200));
         else
-                execx86(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / 100);
-
+                execx86(models[model].cpu[cpu_manufacturer].cpus[cpu].rspeed / (turbo ? 100 : 200));
+        
                 keyboard_poll_host();
                 keyboard_process();
 //                checkkeys();
@@ -565,14 +528,14 @@ void runpc()
 		        if (is386)
 		        {
 		                if (cpu_use_dynarec)
-		                        sprintf(s, "PCem-X v9 [DYN] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
+		                        sprintf(s, "PCem-X v10 [DYN] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
 		                else
-		                        sprintf(s, "PCem-X v9 [INT 286/386] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
+		                        sprintf(s, "PCem-X v10 [INT 286/386] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
 		        }
-		        else if (AT)
-		                sprintf(s, "PCem-X v9 [INT 286/386] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
+		        else if (AT || is_nonat_286())
+		                sprintf(s, "PCem-X v10 [INT 286/386] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
 		        else
-		                sprintf(s, "PCem-X v9 [INT 808x] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
+		                sprintf(s, "PCem-X v10 [INT 808x] - %i%% - %s - %s - %s", fps, model_getname(), models[model].cpu[cpu_manufacturer].cpus[cpu].name, (!mousecapture) ? "Click to capture mouse" : "Press CTRL-END or middle button to release mouse");
 
                         set_window_title(s);
                 }
@@ -620,7 +583,7 @@ void closepc()
         dumpregs();
         closevideo();
         device_close_all();
-	midi_close();
+        midi_close();
 }
 
 /*int main()
@@ -642,21 +605,29 @@ void loadconfig(char *fn)
 {
         char s[512];
         char *p;
-
+        
         if (!fn)
         {
                 append_filename(config_file_default, pcempath, "pcem.cfg", 511);
-
+        
                 config_load(config_file_default);
         }
         else
                 config_load(fn);
-
+        
         GAMEBLASTER = config_get_int(NULL, "gameblaster", 0);
         GUS = config_get_int(NULL, "gus", 0);
         SSI2001 = config_get_int(NULL, "ssi2001", 0);
-	voodoo_enabled = config_get_int(NULL, "voodoo", 0);
+        voodoo_enabled = config_get_int(NULL, "voodoo", 0);
 
+// #ifdef USE_NETWORKING
+	//network
+	ethif = config_get_int(NULL, "netinterface", 1);
+        if (ethif >= inum)
+            inum = ethif + 1;
+        network_card_current = config_get_int(NULL, "netcard", NE2000);
+// #endif
+        
         model = config_get_int(NULL, "model", 14);
 
         if (model >= model_count())
@@ -665,39 +636,28 @@ void loadconfig(char *fn)
         romset = model_getromset();
         cpu_manufacturer = config_get_int(NULL, "cpu_manufacturer", 0);
         cpu = config_get_int(NULL, "cpu", 0);
-        cpu_use_dynarec = config_get_int(NULL, "enable_dynarec", 1);
-        cpu_use_dynarec = config_get_int(NULL, "cpu_use_dynarec", cpu_use_dynarec);
-
+        cpu_use_dynarec = config_get_int(NULL, "cpu_use_dynarec", 0);
+        
         gfxcard = config_get_int(NULL, "gfxcard", 0);
-        // gfxcardpci = config_get_int(NULL, "gfxcardpci", 0);
         video_speed = config_get_int(NULL, "video_speed", 3);
         sound_card_current = config_get_int(NULL, "sndcard", SB2);
-#ifndef __unix
-        network_card_current = config_get_int(NULL, "netcard", 0);
-#endif
 
         p = (char *)config_get_string(NULL, "disc_a", "");
         if (p) strcpy(discfns[0], p);
         else   strcpy(discfns[0], "");
-	configure_from_int(0, config_get_int(NULL, "drivetype_a", 8));
 
         p = (char *)config_get_string(NULL, "disc_b", "");
         if (p) strcpy(discfns[1], p);
         else   strcpy(discfns[1], "");
-	configure_from_int(1, config_get_int(NULL, "drivetype_b", 8));
-
-	force_43 = config_get_int(NULL, "force_43", 0);
-	enable_overscan = config_get_int(NULL, "enable_overscan", 1);
-	ps1xtide = config_get_int(NULL, "ps1xtide", 0);
 
         mem_size = config_get_int(NULL, "mem_size", 4);
         cdrom_drive = config_get_int(NULL, "cdrom_drive", 0);
         cdrom_enabled = config_get_int(NULL, "cdrom_enabled", 0);
-
+        
         slowega = config_get_int(NULL, "slow_video", 1);
         cache = config_get_int(NULL, "cache", 3);
         cga_comp = config_get_int(NULL, "cga_composite", 0);
-
+        
         vid_resize = config_get_int(NULL, "vid_resize", 0);
         vid_api = config_get_int(NULL, "vid_api", 0);
         video_fullscreen_scale = config_get_int(NULL, "video_fullscreen_scale", 0);
@@ -728,10 +688,24 @@ void loadconfig(char *fn)
         if (p) strcpy(ide_fn[3], p);
         else   strcpy(ide_fn[3], "");
 
+        p = (char *)config_get_string(NULL, "disc_a", "");
+        if (p) strcpy(discfns[0], p);
+        else   strcpy(discfns[0], "");
+	configure_from_int(0, config_get_int(NULL, "drivetype_a", 8));
+
+        p = (char *)config_get_string(NULL, "disc_b", "");
+        if (p) strcpy(discfns[1], p);
+        else   strcpy(discfns[1], "");
+	configure_from_int(1, config_get_int(NULL, "drivetype_b", 8));
+
+	force_43 = config_get_int(NULL, "force_43", 0);
+	enable_overscan = config_get_int(NULL, "enable_overscan", 1);
+	ps1xtide = config_get_int(NULL, "ps1xtide", 0);
+
         disable_xchg_dynarec = config_get_int(NULL, "disable_xchg_dynarec", 0);
+        turbo = config_get_int(NULL, "turbo", 1);
 
         cga_color_burst = config_get_int(NULL, "cga_color_burst", 1);
-	old_color_burst = cga_color_burst;
 
         cga_brown = config_get_int(NULL, "cga_brown", 1);
 }
@@ -743,31 +717,27 @@ void saveconfig()
         config_set_int(NULL, "ssi2001", SSI2001);
         config_set_int(NULL, "voodoo", voodoo_enabled);
 
+//NETWORK
+// #ifdef USE_NETWORKING
+	config_set_int(NULL, "netinterface", ethif);
+	config_set_int(NULL, "netcard", network_card_current);
+// #endif
+        
         config_set_int(NULL, "model", model);
         config_set_int(NULL, "cpu_manufacturer", cpu_manufacturer);
         config_set_int(NULL, "cpu", cpu);
         config_set_int(NULL, "cpu_use_dynarec", cpu_use_dynarec);
-
+        
         config_set_int(NULL, "gfxcard", gfxcard);
-        // config_set_int(NULL, "gfxcardpci", gfxcard);
         config_set_int(NULL, "video_speed", video_speed);
         config_set_int(NULL, "sndcard", sound_card_current);
-
-#ifndef __unix
-        config_set_int(NULL, "netcard", network_card_current);
-#endif
         config_set_int(NULL, "cpu_speed", cpuspeed);
         config_set_int(NULL, "has_fpu", hasfpu);
         config_set_int(NULL, "slow_video", slowega);
         config_set_int(NULL, "cache", cache);
         config_set_int(NULL, "cga_composite", cga_comp);
         config_set_string(NULL, "disc_a", discfns[0]);
-        config_set_int(NULL, "drivetype_a", int_from_config(0));
         config_set_string(NULL, "disc_b", discfns[1]);
-        config_set_int(NULL, "drivetype_b", int_from_config(1));
-        config_set_int(NULL, "force_43", force_43);
-        config_set_int(NULL, "enable_overscan", enable_overscan);
-        config_set_int(NULL, "ps1xtide", ps1xtide);
         config_set_int(NULL, "mem_size", mem_size);
         config_set_int(NULL, "cdrom_drive", cdrom_drive);
         config_set_int(NULL, "cdrom_enabled", cdrom_enabled);
@@ -775,7 +745,7 @@ void saveconfig()
         config_set_int(NULL, "vid_api", vid_api);
         config_set_int(NULL, "video_fullscreen_scale", video_fullscreen_scale);
         config_set_int(NULL, "video_fullscreen_first", video_fullscreen_first);
-
+        
         config_set_int(NULL, "hdc_sectors", hdc[0].spt);
         config_set_int(NULL, "hdc_heads", hdc[0].hpc);
         config_set_int(NULL, "hdc_cylinders", hdc[0].tracks);
@@ -793,7 +763,15 @@ void saveconfig()
         config_set_int(NULL, "hdf_cylinders", hdc[3].tracks);
         config_set_string(NULL, "hdf_fn", ide_fn[3]);
 
+        config_set_int(NULL, "drivetype_a", int_from_config(0));
+        config_set_int(NULL, "drivetype_b", int_from_config(1));
+
+        config_set_int(NULL, "force_43", force_43);
+        config_set_int(NULL, "enable_overscan", enable_overscan);
+        config_set_int(NULL, "ps1xtide", ps1xtide);
+
         config_set_int(NULL, "disable_xchg_dynarec", disable_xchg_dynarec);
+        config_set_int(NULL, "turbo", turbo);
 
         config_set_int(NULL, "cga_color_burst", cga_color_burst);
         config_set_int(NULL, "cga_brown", cga_brown);

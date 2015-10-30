@@ -1,9 +1,9 @@
 VPATH = . dosbox resid-fp slirp
-CPP  = g++.exe
-CC   = gcc.exe
-WINDRES = windres.exe
+CPP  = i686-w64-mingw32-g++
+CC   = i686-w64-mingw32-gcc
+WINDRES = i686-w64-mingw32-windres
 initcflags = -O3 -fomit-frame-pointer -DDYNAREC
-basecflags = $(initcflags) -ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse -march=native -mtune=native
+basecflags = $(initcflags) -march=core2 -ffast-math -msse -msse2 -msse3 -mssse3 -mfpmath=sse
 CXXFLAGS = $(basecflags)
 OBJ = 386.o32 386_dynarec.o32 386_dynarec_ops.o32 808x.o32 acer386sx.o32 ali1429.o32 amstrad.o32 cdrom-ioctl.o32 \
 	codegen.o32 codegen_ops.o32 codegen_timing_486.o32 codegen_timing_pentium.o32 codegen_x86.o32 colorbook_io.o32 compaq.o32 config.o32 cpqio.o32 cpu.o32 dac.o32 \
@@ -27,7 +27,7 @@ FMOBJ = dbopl.o32
 SIDOBJ = convolve.o32 convolve-sse.o32 envelope.o32 extfilt.o32 filter.o32 pot.o32 sid.o32 voice.o32 wave6581__ST.o32 wave6581_P_T.o32 wave6581_PS_.o32 wave6581_PST.o32 wave8580__ST.o32 wave8580_P_T.o32 wave8580_PS_.o32 wave8580_PST.o32 wave.o32
 SLIRPOBJ = bootp.o32 ip_icmp.o32 misc.o32 socket.o32 tcp_timer.o32 cksum.o32 ip_input.o32 queue.o32 tcp_input.o32 tftp.o32 debug.o32 ip_output.o32 sbuf.o32 tcp_output.o32 udp.o32 if.o32 mbuf.o32 slirp.o32 tcp_subr.o32
 
-LIBS = -mwindows -lwinmm -lopenal32 -lopenal32.dll -lddraw -ldinput -ldxguid -lgcov -ld3d9 -lwsock32 -liphlpapi -lstdc++ -static-libstdc++ -static-libgcc -static
+LIBS = -mwindows -lwinmm -lopenal32 -lopenal32.dll -lddraw -ldinput8 -ldxguid -lgcov -ld3d9 -lwsock32 -liphlpapi -lstdc++ -static-libstdc++ -static-libgcc -static
 
 PCem-X.exe: $(OBJ) $(FMOBJ) $(SIDOBJ) $(SLIRPOBJ)
 	$(CC) $(OBJ) $(FMOBJ) $(SIDOBJ) $(SLIRPOBJ) -o "PCem-X.exe" $(LIBS)
