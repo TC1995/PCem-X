@@ -24,6 +24,7 @@
 #include "vid_hercules.h"
 #include "vid_mda.h"
 #include "vid_nv_riva128.h"
+#include "vid_nv_rivatnt.h"
 #include "vid_olivetti_m24.h"
 #include "vid_oti067.h"
 #include "vid_paradise.h"
@@ -72,6 +73,7 @@ static VIDEO_CARD video_cards[] =
         {"MDA",                                    &mda_device,                 GFX_MDA},
         {"Number Nine 9FX (S3 Trio64)",            &s3_9fx_device,              GFX_N9_9FX},
         {"nVidia RIVA 128",                        &riva128_device,             GFX_RIVA128},
+      {"nVidia RIVA TNT",                        &rivatnt_device,             GFX_RIVATNT},
         {"OAK OTI-067",                            &oti067_device,              GFX_OTI067},
         {"Paradise Bahamas 64 (S3 Vision864)",     &s3_bahamas64_device,        GFX_BAHAMAS64},
 	{"Paradise WD90C11",			   &paradise_wd90c11_megapc_device,GFX_PARADISE},
@@ -129,21 +131,21 @@ int video_card_getid(char *s)
                         return c;
                 c++;
         }
-        
+
         return 0;
 }
 
 int video_old_to_new(int card)
 {
         int c = 0;
-        
+
         while (video_cards[c].device)
         {
                 if (video_cards[c].legacy_id == card)
                         return c;
                 c++;
         }
-        
+
         return 0;
 }
 
