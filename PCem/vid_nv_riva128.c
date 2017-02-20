@@ -60,141 +60,134 @@ typedef struct riva128_t
 
 static uint8_t riva128_pci_read(int func, int addr, void *p);
 
-static uint8_t riva128_pmc_read(uint32_t addr, void *p)
+static uint32_t riva128_pmc_read(uint32_t addr, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
-  uint8_t ret = 0;
+  uint32_t ret = 0;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 PMC read %08X %04X:%08X\n", addr, CS, pc);
-#endif
 
   switch(addr)
-  {
-  case 0x000000: ret = 0x11; break;
-  case 0x000001: ret = 0x01; break;
-  case 0x000002: ret = 0x03; break;
-  case 0x000003: ret = 0x00; break;
-  }
-
-  return ret;
+{
+  case 0x000000: ret = 0x00030111; break;
 }
 
-static uint8_t riva128_pbus_read(uint32_t addr, void *p)
+return ret;
+}
+
+static uint32_t riva128_pbus_read(uint32_t addr, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
-  uint8_t ret = 0;
+  uint32_t ret = 0;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 PBUS read %08X %04X:%08X\n", addr, CS, pc);
-#endif
 
   switch(addr)
-  {
-  case 0x001800 ... 0x0018ff: ret = riva128_pci_read(0, addr - 0x1800, riva128); break;
-  }
-
-  return ret;
+{
+  case 0x001800 ... 0x0018ff:
+  ret = riva128_pci_read(0, addr - 0x1800, riva128);
+  ret |= riva128_pci_read(0, addr + 1 - 0x1800, riva128) << 8;
+  ret |= riva128_pci_read(0, addr + 2 - 0x1800, riva128) << 16;
+  ret |= riva128_pci_read(0, addr + 3 - 0x1800, riva128) << 24;
+  break;
 }
 
-static uint8_t riva128_pfb_read(uint32_t addr, void *p)
+return ret;
+}
+
+static uint32_t riva128_pfb_read(uint32_t addr, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
-  uint8_t ret = 0;
+  uint32_t ret = 0;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 PFB read %08X %04X:%08X\n", addr, CS, pc);
-#endif
 
   switch(addr)
-  {
-  case 0x100000: ret = 0x06; break;
-  case 0x100200: ret = riva128->pfb.config_0 & 0xff; break;
-  case 0x100201: ret = (riva128->pfb.config_0 >> 8) & 0xff; break;
-  case 0x100202: ret = (riva128->pfb.config_0 >> 16) & 0xff; break;
-  case 0x100203: ret = (riva128->pfb.config_0 >> 24) & 0xff; break;
-  }
+{
+  case 0x100000:
+{
+  switch(riva128->memory_size)
+{
+  case 4: ret = 1; break;
+  case 8: ret = 2; break;
+  case 16: ret = 3; break;
+  case 32: ret = 0; break;
+}
+ret |= 0x14;
+break;
+}
+case 0x100200: ret = riva128->pfb.config_0; break;
+}
 
-  return ret;
+return ret;
 }
 
 static void riva128_pfb_write(uint32_t addr, uint32_t val, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 PFB write %08X %08X %04X:%08X\n", addr, val, CS, pc);
-#endif
 
   switch(addr)
-  {
+{
   case 0x100200:
   riva128->pfb.config_0 = val;
   riva128->pfb.width = (val & 0x3f) << 5;
   switch((val >> 8) & 3)
-  {
+{
   case 1: riva128->pfb.bpp = 8; break;
   case 2: riva128->pfb.bpp = 16; break;
   case 3: riva128->pfb.bpp = 32; break;
-  }
-  break;
-  }
+}
+break;
+}
 }
 
 static uint8_t riva128_pramdac_read(uint32_t addr, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
-  uint8_t ret = 0;
+  uint32_t ret = 0;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 PRAMDAC read %08X %04X:%08X\n", addr, CS, pc);
-#endif
 
   switch(addr)
-  {
-  case 0x680600: ret = riva128->pramdac.gen_ctrl & 0xff; break;
-  case 0x680601: ret = (riva128->pramdac.gen_ctrl >> 8) & 0xff; break;
-  case 0x680602: ret = (riva128->pramdac.gen_ctrl >> 16) & 0xff; break;
-  case 0x680603: ret = (riva128->pramdac.gen_ctrl >> 24) & 0xff; break;
-  }
+{
+  case 0x680600: ret = riva128->pramdac.gen_ctrl; break;
+}
 
-  return ret;
+return ret;
 }
 
 static void riva128_pramdac_write(uint32_t addr, uint32_t val, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 PRAMDAC write %08X %08X %04X:%08X\n", addr, val, CS, pc);
-#endif
 
   switch(addr)
-  {
+{
   case 0x680600:
   riva128->pramdac.gen_ctrl = val;
   break;
-  }
+}
 }
 
-static uint8_t riva128_mmio_read(uint32_t addr, void *p)
+static uint32_t riva128_mmio_read_l(uint32_t addr, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
-  uint8_t ret = 0;
+  uint32_t ret = 0;
 
   addr &= 0xffffff;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 MMIO read %08X %04X:%08X\n", addr, CS, pc);
-#endif
 
   switch(addr)
-  {
+{
   case 0x000000 ... 0x000fff:
   ret = riva128_pmc_read(addr, riva128);
   break;
@@ -207,38 +200,30 @@ static uint8_t riva128_mmio_read(uint32_t addr, void *p)
   case 0x680000 ... 0x680fff:
   ret = riva128_pramdac_read(addr, riva128);
   break;
-  }
-  return ret;
+}
+return ret;
+}
+
+static uint8_t riva128_mmio_read(uint32_t addr, void *p)
+{
+  riva128_t *riva128 = (riva128_t *)p;
+  svga_t *svga = &riva128->svga;
+  uint32_t ret = 0;
+
+  ret = riva128_mmio_read_l(addr, riva128);
+  ret >>= ((addr & 3)) << 3;
+  ret &= 0xff;
 }
 
 static uint16_t riva128_mmio_read_w(uint32_t addr, void *p)
 {
-#ifndef RELEASE_BUILD
-  pclog("RIVA 128 MMIO read %08X %04X:%08X\n", addr, CS, pc);
-#endif
-  return 0;
-}
+  riva128_t *riva128 = (riva128_t *)p;
+  svga_t *svga = &riva128->svga;
+  uint32_t ret = 0;
 
-static uint32_t riva128_mmio_read_l(uint32_t addr, void *p)
-{
-#ifndef RELEASE_BUILD
-  pclog("RIVA 128 MMIO read %08X %04X:%08X\n", addr, CS, pc);
-#endif
-  return 0;
-}
-
-static void riva128_mmio_write(uint32_t addr, uint8_t val, void *p)
-{
-#ifndef RELEASE_BUILD
-  pclog("RIVA 128 MMIO write %08X %02X %04X:%08X\n", addr, val, CS, pc);
-#endif
-}
-
-static void riva128_mmio_write_w(uint32_t addr, uint16_t val, void *p)
-{
-#ifndef RELEASE_BUILD
-  pclog("RIVA 128 MMIO write %08X %04X %04X:%08X\n", addr, val, CS, pc);
-#endif
+  ret = riva128_mmio_read_l(addr, riva128);
+  ret >>= ((addr & 2)) << 3;
+  ret &= 0xffff;
 }
 
 static void riva128_mmio_write_l(uint32_t addr, uint32_t val, void *p)
@@ -248,19 +233,43 @@ static void riva128_mmio_write_l(uint32_t addr, uint32_t val, void *p)
 
   addr &= 0xffffff;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 MMIO write %08X %08X %04X:%08X\n", addr, val, CS, pc);
-#endif
 
   switch(addr)
-  {
+{
   case 0x100000 ... 0x100fff:
   riva128_pfb_write(addr, val, riva128);
   break;
   case 0x680000 ... 0x680fff:
   riva128_pramdac_write(addr, val, riva128);
   break;
-  }
+}
+}
+
+static void riva128_mmio_write(uint32_t addr, uint8_t val, void *p)
+{
+  riva128_t *riva128 = (riva128_t *)p;
+  svga_t *svga = &riva128->svga;
+
+  uint32_t tmp;
+
+  tmp = riva128_mmio_read_l(addr, riva128);
+  tmp &= ~(0xff << ((addr & 3) << 3));
+  tmp |= val << ((addr & 3) << 3);
+  riva128_mmio_write_l(addr, tmp, riva128);
+}
+
+static void riva128_mmio_write_w(uint32_t addr, uint16_t val, void *p)
+{
+  riva128_t *riva128 = (riva128_t *)p;
+  svga_t *svga = &riva128->svga;
+
+  uint32_t tmp;
+
+  tmp = riva128_mmio_read_l(addr, riva128);
+  tmp &= ~(0xffff << ((addr & 2) << 3));
+  tmp |= val << ((addr & 2) << 3);
+  riva128_mmio_write_l(addr, tmp, riva128);
 }
 
 static uint8_t riva128_rma_in(uint16_t addr, void *p)
@@ -271,72 +280,42 @@ static uint8_t riva128_rma_in(uint16_t addr, void *p)
 
   addr &= 0xff;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 RMA read %04X %04X:%08X\n", addr, CS, pc);
-#endif
 
   switch(addr)
-  {
+{
   case 0x00: ret = 0x65; break;
   case 0x01: ret = 0xd0; break;
   case 0x02: ret = 0x16; break;
   case 0x03: ret = 0x2b; break;
   case 0x08: case 0x09: case 0x0a: case 0x0b: ret = riva128_mmio_read(riva128->rma.addr + (addr & 3), riva128); break;
-  }
-
-  return ret;
 }
 
-static void riva128_rma_out(uint16_t addr, uint8_t val, void *p)
+return ret;
+}
+
+static void riva128_rma_out(uint16_t addr, uint32_t val, void *p)
 {
   riva128_t *riva128 = (riva128_t *)p;
   svga_t *svga = &riva128->svga;
 
   addr &= 0xff;
 
-#ifndef RELEASE_BUILD
   pclog("RIVA 128 RMA write %04X %02X %04X:%08X\n", addr, val, CS, pc);
-#endif
 
   switch(addr)
-  {
+{
   case 0x04:
-  riva128->rma.addr &= ~0xff;
-  riva128->rma.addr |= val;
-  break;
-  case 0x05:
-  riva128->rma.addr &= ~0xff00;
-  riva128->rma.addr |= (val << 8);
-  break;
-  case 0x06:
-  riva128->rma.addr &= ~0xff0000;
-  riva128->rma.addr |= (val << 16);
-  break;
-  case 0x07:
-  riva128->rma.addr &= ~0xff000000;
-  riva128->rma.addr |= (val << 24);
+  riva128->rma.addr = val;
   break;
   case 0x08: case 0x0c: case 0x10: case 0x14:
-  riva128->rma.data &= ~0xff;
-  riva128->rma.data |= val;
-  break;
-  case 0x09: case 0x0d: case 0x11: case 0x15:
-  riva128->rma.data &= ~0xff00;
-  riva128->rma.data |= (val << 8);
-  break;
-  case 0x0a: case 0x0e: case 0x12: case 0x16:
-  riva128->rma.data &= ~0xff0000;
-  riva128->rma.data |= (val << 16);
-  break;
-  case 0x0b: case 0x0f: case 0x13: case 0x17:
-  riva128->rma.data &= ~0xff000000;
-  riva128->rma.data |= (val << 24);
+  riva128->rma.data = val;
   if(riva128->rma.addr < 0x1000000) riva128_mmio_write_l(riva128->rma.addr & 0xffffff, riva128->rma.data, riva128);
   else svga_writel_linear((riva128->rma.addr - 0x1000000) & svga->vrammask, riva128->rma.data, svga);
   break;
-  }
+}
 
-  if(addr & 0x10) riva128->rma.addr+=4;
+if(addr & 0x10) riva128->rma.addr+=4;
 }
 
 static uint8_t riva128_in(uint16_t addr, void *p)
@@ -394,7 +373,7 @@ static void riva128_out(uint16_t addr, uint8_t val, void *p)
 #endif
   riva128->rma.access_reg[addr & 3] = val;
   if(!(riva128->rma.mode & 1)) return;
-  riva128_rma_out(riva128->rma_addr + ((riva128->rma.mode & 0xe) << 1) + (addr & 3), riva128->rma.access_reg[addr & 3], riva128);
+  if(addr == 0x3d3) riva128_rma_out(riva128->rma_addr + ((riva128->rma.mode & 0xe) << 1), *(uint32_t*)riva128->rma.access_reg, riva128);
   return;
   case 0x3D4:
   svga->crtcreg = val & 0x7f;
