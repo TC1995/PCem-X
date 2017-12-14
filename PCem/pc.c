@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+
+#ifdef _WIN32
+#define BITMAP WINDOWS_BITMAP
+#include <windows.h>
+#undef BITMAP
+#include "win.h"
+#endif
+
 #include "ibm.h"
 #include "device.h"
 
@@ -88,8 +96,22 @@ void fatal(const char *format, ...)
 {
    va_list ap;
    va_start(ap, format);
-   vprintf(format, ap);
+   char msg[1024];
+   vsprintf(msg, format, ap);
    va_end(ap);
+   printf(msg);
+#ifdef _WIN32
+   int i;
+   for (i = 1023; i >= 0; i--) {
+	   if (msg[i] == '\n') {
+		   msg[i] == '\0';
+		   break;
+	   } else if (msg[i] != '\0') {
+		   break;
+	   }
+   }
+   MessageBox(ghwnd, msg, "PCem-X fatal error", MB_OK + MB_ICONERROR);
+#endif
    closeide();
    fflush(stdout);
    dumppic();
